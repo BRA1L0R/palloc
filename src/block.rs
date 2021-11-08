@@ -1,13 +1,14 @@
-use core::{fmt::Display, mem::size_of};
+use core::mem::size_of;
 
 pub type BlockRef = &'static mut MemoryBlock;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum PallocError {
     NoBlockSpace,
     AlreadyAllocated,
     NotAllocated,
     SegmentingTail,
+    OutOfMemory,
 }
 
 #[derive(Default)]
@@ -18,14 +19,17 @@ pub struct MemoryBlock {
 }
 
 impl MemoryBlock {
+    /// # Safety
     pub unsafe fn from_ptr(ptr: *mut MemoryBlock) -> Option<BlockRef> {
         ptr.as_mut()
     }
 
+    /// # Safety
     pub unsafe fn from_ptr_unchecked(ptr: *mut MemoryBlock) -> BlockRef {
         &mut *ptr
     }
 
+    /// # Safety
     pub unsafe fn default_from_ptr(ptr: *mut MemoryBlock) -> Option<BlockRef> {
         Self::from_ptr(ptr).map(|b| {
             *b = MemoryBlock::default();
@@ -44,6 +48,7 @@ impl MemoryBlock {
         }
     }
 
+    /// # Safety
     pub unsafe fn insert_default(&mut self, address: *mut MemoryBlock) {
         let inserted = Self::default_from_ptr(address).unwrap();
         inserted.next = self.next.take();
@@ -97,14 +102,14 @@ impl MemoryBlock {
             .map(|next| (*next as *const MemoryBlock as usize) - self.heap() as usize)
     }
 
-    pub fn link_default(&mut self) {
+    /// # Safety
+    pub unsafe fn link_default(&mut self) {
         if self.allocation == 0 {
             panic!("cannot without being allocated")
         }
 
-        self.next = unsafe {
-            Self::default_from_ptr((self.heap() as usize + self.allocation) as *mut MemoryBlock)
-        };
+        self.next =
+            Self::default_from_ptr((self.heap() as usize + self.allocation) as *mut MemoryBlock);
     }
 
     pub fn heap(&self) -> *mut u8 {
@@ -117,10 +122,12 @@ impl MemoryBlock {
         self.next.as_mut().map_or(selfptr, |block| block.top())
     }
 
+    /// # Safety
     pub unsafe fn from_heap_ptr(heap: *mut u8) -> Option<BlockRef> {
         ((heap as usize - size_of::<Self>()) as *mut MemoryBlock).as_mut()
     }
 
+    /// # Safety
     pub unsafe fn from_heap_ptr_unchecked(heap: *mut u8) -> BlockRef {
         &mut *((heap as usize - size_of::<Self>()) as *mut MemoryBlock)
     }
