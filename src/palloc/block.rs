@@ -1,15 +1,7 @@
+use crate::PallocError;
 use core::mem::size_of;
 
 pub type BlockRef = &'static mut MemoryBlock;
-
-#[derive(Debug, PartialEq)]
-pub enum PallocError {
-    NoBlockSpace,
-    AlreadyAllocated,
-    NotAllocated,
-    SegmentingTail,
-    OutOfMemory,
-}
 
 #[derive(Default)]
 #[repr(C)]
@@ -158,8 +150,8 @@ impl BlockIterator {
         }
     }
 
-    pub fn current_mut(&mut self) -> Option<BlockRef> {
-        unsafe { self.current.map(|ptr| &mut *ptr) }
+    pub unsafe fn current_mut(&mut self) -> Option<BlockRef> {
+        self.current.map(|ptr| &mut *ptr)
     }
 }
 
@@ -167,7 +159,7 @@ impl Iterator for BlockIterator {
     type Item = BlockRef;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.current.map(|ptr| unsafe { &mut *ptr }).map(|current| {
+        unsafe { self.current_mut() }.map(|current| {
             self.current = current
                 .next
                 .as_mut()

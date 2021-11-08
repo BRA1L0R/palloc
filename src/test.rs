@@ -1,6 +1,6 @@
 extern crate std;
 
-use crate::{block::PallocError, Palloc};
+use crate::{Palloc, PallocError};
 use core::ptr::slice_from_raw_parts_mut;
 use std::{sync::Once, vec, vec::Vec};
 
@@ -20,7 +20,7 @@ unsafe fn empty_heap() -> &'static mut [u8] {
 
 fn empty_allocator() -> Palloc {
     let mut palloc = Palloc::empty();
-    palloc.init_from_slice(unsafe { empty_heap() });
+    unsafe { palloc.init_from_slice(empty_heap()) };
 
     palloc
 }
