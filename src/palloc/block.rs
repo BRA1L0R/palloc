@@ -1,5 +1,5 @@
 use crate::PallocError;
-use core::mem::size_of;
+use core::{mem::size_of, ptr::NonNull};
 
 pub type BlockRef = &'static mut MemoryBlock;
 
@@ -12,21 +12,20 @@ pub struct MemoryBlock {
 
 impl MemoryBlock {
     /// # Safety
-    pub unsafe fn from_ptr(ptr: *mut MemoryBlock) -> Option<BlockRef> {
+    pub unsafe fn from_ptr(mut ptr: NonNull<MemoryBlock>) -> BlockRef {
         ptr.as_mut()
     }
 
-    /// # Safety
     pub unsafe fn from_ptr_unchecked(ptr: *mut MemoryBlock) -> BlockRef {
         &mut *ptr
     }
 
     /// # Safety
-    pub unsafe fn default_from_ptr(ptr: *mut MemoryBlock) -> Option<BlockRef> {
-        Self::from_ptr(ptr).map(|b| {
-            *b = MemoryBlock::default();
-            b
-        })
+    pub unsafe fn default_from_ptr(ptr: NonNull<MemoryBlock>) -> BlockRef {
+        let block = Self::from_ptr(ptr);
+        *block = MemoryBlock::default();
+
+        block
     }
 
     pub fn allocate(&mut self, size: usize) -> Result<*mut u8, PallocError> {
@@ -41,8 +40,8 @@ impl MemoryBlock {
     }
 
     /// # Safety
-    pub unsafe fn insert_default(&mut self, address: *mut MemoryBlock) {
-        let inserted = Self::default_from_ptr(address).unwrap();
+    pub unsafe fn insert_default(&mut self, address: NonNull<MemoryBlock>) {
+        let inserted = Self::default_from_ptr(address);
         inserted.next = self.next.take();
         self.next = Some(inserted);
     }
@@ -63,7 +62,7 @@ impl MemoryBlock {
         Ok(())
     }
 
-    pub fn segment(&mut self) -> Result<(), PallocError> {
+    pub unsafe fn segment(&mut self) -> Result<(), PallocError> {
         let maxsize = self.max_size().ok_or(PallocError::SegmentingTail)?;
         let allocated = match self.allocation {
             0 => Err(PallocError::NotAllocated),
@@ -71,8 +70,8 @@ impl MemoryBlock {
         }?;
 
         if (allocated + size_of::<Self>()) < maxsize {
-            let newblock = (self.heap() as usize + allocated) as *mut MemoryBlock;
-            unsafe { self.insert_default(newblock) };
+            let newblock = NonNull::new_unchecked((self.heap() as usize + allocated) as *mut _);
+            self.insert_default(newblock);
         }
 
         Ok(())
@@ -100,8 +99,11 @@ impl MemoryBlock {
             panic!("cannot without being allocated")
         }
 
-        self.next =
-            Self::default_from_ptr((self.heap() as usize + self.allocation) as *mut MemoryBlock);
+        let new_link = Self::default_from_ptr(NonNull::new_unchecked(
+            (self.heap() as usize + self.allocation) as *mut _,
+        ));
+
+        self.next = Some(new_link);
     }
 
     pub fn heap(&self) -> *mut u8 {

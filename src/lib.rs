@@ -17,3 +17,9 @@ mod test;
 /// allocator module
 pub mod palloc;
 pub use palloc::*;
+
+/// spinlock global allocator
+#[cfg(feature = "spin")]
+pub mod spinlock;
+#[cfg(feature = "spin")]
+pub use spinlock::*;

@@ -1,7 +1,7 @@
 mod block;
 
 use block::{BlockRef, MemoryBlock};
-use core::ptr::null_mut;
+use core::ptr::{null_mut, NonNull};
 
 /// defines an error returned from either an allocation
 /// or a deallocation
@@ -37,16 +37,7 @@ impl Palloc {
     /// creates an empty allocator, pointing to 0-sized null memory.
     ///
     /// to make the allocator working, check out [`init`](#method.init)
-    #[cfg(feature = "const_mut_refs")]
     pub const fn empty() -> Palloc {
-        Palloc {
-            bottom: null_mut(),
-            size: 0,
-        }
-    }
-
-    #[cfg(not(feature = "const_mut_refs"))]
-    pub fn empty() -> Palloc {
         Palloc {
             bottom: null_mut(),
             size: 0,
@@ -65,11 +56,13 @@ impl Palloc {
     /// be accessible and free to use.
     ///
     /// Initializing using a null pointer will result in a panic.
-    pub unsafe fn init(&mut self, bottom: *mut u8, size: usize) {
-        self.bottom = bottom as *mut MemoryBlock;
+    pub unsafe fn init(&mut self, bottom: NonNull<u8>, size: usize) {
+        let bottom = bottom.cast();
+
+        self.bottom = bottom.as_ptr();
         self.size = size;
 
-        MemoryBlock::default_from_ptr(self.bottom).expect("bottom should not be null");
+        MemoryBlock::default_from_ptr(bottom);
     }
 
     /// Initializes heap from a memory slice. See [`init`](#method.init) for more informations.
@@ -78,19 +71,21 @@ impl Palloc {
     /// See [`init`](#method.init)
     pub unsafe fn init_from_slice(&mut self, heap: &mut [u8]) {
         let (bottom, size) = (heap.as_mut_ptr(), heap.len());
-        self.init(bottom, size);
+        let bottom = NonNull::new(bottom).expect("non nullpointed slice");
+
+        self.init(bottom.cast(), size);
     }
 
     /// Creates a new allocation of `size` bytes. When Ok, returns a pointer
     /// to a free uninitialized (not to be assumed zero) memory region.
     /// May result in one of the errors defined in
     /// [`PallocError`](enum.PallocError.html).
-    /// 
+    ///
     /// Alloc will potentially traverse the entire heap in search of a free segment.
     /// It will also merge all freed adjacent blocks. Once a free block is found, if
     /// it does not fill the entire segment (in case of reallocation) a chunk will be split
     /// and the rest of the memory made available for further allocations.
-    /// 
+    ///
     /// This whole process, while not ensuring super fast allocation all of the time, it
     /// assures that every piece of memory is being used as much as possible.
     ///
@@ -132,7 +127,7 @@ impl Palloc {
     /// Deallocates memory at a given pointer location, giving it back to
     /// the allocator for further allocational purposes.
     ///
-    /// Once deallocated, memory cannot be used anymore and 
+    /// Once deallocated, memory cannot be used anymore and
     /// its integrity is not assured.
     ///
     /// ### Safety
