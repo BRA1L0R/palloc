@@ -107,10 +107,10 @@ impl MemoryBlock {
         (self_addr + size_of::<Self>()) as _
     }
 
-    pub fn top(&'static mut self) -> *mut MemoryBlock {
-        let selfptr = self as *mut MemoryBlock;
-        self.next.as_mut().map_or(selfptr, |block| block.top())
-    }
+    // pub fn top(&'static mut self) -> *mut MemoryBlock {
+    //     let selfptr = self as *mut MemoryBlock;
+    //     self.next.as_mut().map_or(selfptr, |block| block.top())
+    // }
 
     /// # Safety
     pub unsafe fn from_heap_ptr(heap: NonNull<u8>) -> Option<BlockRef> {

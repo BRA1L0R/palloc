@@ -22,12 +22,19 @@ pub enum PallocError {
     /// no more blocks can be allocated without going
     /// outside of memory bounds.
     OutOfMemory,
+    /// given is zero or memory header controlling it is zero
+    NullPtr,
 }
 
 /// defines a both uninitialized and initialized allocator.
 ///
 /// An ['empty'](#method.empty) instance may be created for static purposes,
 /// but in order to allocate memory [initialization](#method.init) must occur.
+///
+/// # Safety
+/// Palloc manually implements the Send trait, meaning it can be sended between threads
+/// for shared access. This also means that the heap memory region must be
+/// accessible from every thread.
 pub struct Palloc {
     bottom: *mut MemoryBlock,
     size: usize,
@@ -133,8 +140,12 @@ impl Palloc {
     /// ### Safety
     /// `alloc` must point to the bottom of a valid allocation. Not being aligned to
     /// one will lead to **undefined behaviour**, potentially destructive.
-    pub unsafe fn free(&self, alloc: NonNull<u8>) -> Result<(), PallocError> {
-        let block = MemoryBlock::from_heap_ptr(alloc).unwrap(); // should never result into a null pointer
+    pub unsafe fn free(&self, alloc: *mut u8) -> Result<(), PallocError> {
+        let block = NonNull::new(alloc)
+            .map(|ptr| MemoryBlock::from_heap_ptr(ptr))
+            .flatten()
+            .ok_or(PallocError::NullPtr)?;
+
         if block.is_allocated() {
             block.dealloc()
         } else {
@@ -142,3 +153,5 @@ impl Palloc {
         }
     }
 }
+
+unsafe impl Send for Palloc {}

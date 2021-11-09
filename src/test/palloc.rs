@@ -2,21 +2,8 @@ extern crate std;
 
 use crate::{Palloc, PallocError};
 use core::ptr::slice_from_raw_parts_mut;
-use std::{sync::Once, vec, vec::Vec};
 
-static INIT: Once = Once::new();
-static mut _FAKE_HEAP: Option<Vec<u8>> = None;
-
-fn init() {
-    INIT.call_once(|| unsafe { _FAKE_HEAP = Some(vec![0u8; 150]) });
-}
-
-unsafe fn empty_heap() -> &'static mut [u8] {
-    let heap = _FAKE_HEAP.as_mut().unwrap();
-    heap.iter_mut().for_each(|v| *v = 0);
-
-    heap
-}
+use super::empty_heap;
 
 fn empty_allocator() -> Palloc {
     let mut palloc = Palloc::empty();
@@ -39,7 +26,6 @@ fn memtest_allocation(start: *mut u8, size: usize) -> bool {
 
 #[test]
 fn test_single_alloc() -> Result<(), PallocError> {
-    init();
     let mut palloc = empty_allocator();
 
     let ptr = unsafe { palloc.alloc(30)? };
@@ -50,7 +36,6 @@ fn test_single_alloc() -> Result<(), PallocError> {
 
 #[test]
 fn test_realloc() -> Result<(), PallocError> {
-    init();
     let mut palloc = empty_allocator();
 
     let allocation = unsafe { palloc.alloc(50)? };
@@ -64,7 +49,6 @@ fn test_realloc() -> Result<(), PallocError> {
 
 #[test]
 fn test_merge() -> Result<(), PallocError> {
-    init();
     let mut palloc = empty_allocator();
 
     let first = unsafe { palloc.alloc(20)? };
@@ -83,7 +67,6 @@ fn test_merge() -> Result<(), PallocError> {
 
 #[test]
 fn test_segment() -> Result<(), PallocError> {
-    init();
     let mut palloc = empty_allocator();
 
     let alloc = unsafe { palloc.alloc(50)? };
@@ -97,7 +80,6 @@ fn test_segment() -> Result<(), PallocError> {
 
 #[test]
 fn test_oom() {
-    init();
     let mut palloc = empty_allocator();
 
     assert_eq!(

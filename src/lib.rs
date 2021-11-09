@@ -11,15 +11,15 @@
 //! This allocator is not speed-oriented, while still being relatively efficent.
 //! Allocations have a 2*usize overhead
 
-#[cfg(test)]
-mod test;
-
 /// allocator module
 pub mod palloc;
-pub use palloc::*;
+pub use crate::palloc::*;
 
 /// spinlock global allocator
 #[cfg(feature = "spin")]
 pub mod spinlock;
 #[cfg(feature = "spin")]
-pub use spinlock::*;
+pub use crate::spinlock::*;
+
+#[cfg(test)]
+mod test;
