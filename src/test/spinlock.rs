@@ -2,16 +2,17 @@ use core::alloc::{GlobalAlloc, Layout};
 
 use crate::SpinPalloc;
 
-unsafe fn empty_allocator() -> SpinPalloc {
+fn empty_allocator(heap: &mut [u8]) -> SpinPalloc {
     let spalloc = SpinPalloc::empty();
-    spalloc.init_from_slice(super::empty_heap());
+    unsafe { spalloc.init_from_slice(heap) };
 
     spalloc
 }
 
 #[test]
 fn allocation_deallocation() {
-    let palloc = unsafe { empty_allocator() };
+    let mut heap = [0; 50];
+    let palloc = empty_allocator(&mut heap);
 
     let layout = Layout::from_size_align(20, 1).unwrap();
     let allocation = unsafe { palloc.alloc(layout) };

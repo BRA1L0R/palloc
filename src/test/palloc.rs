@@ -3,12 +3,9 @@ extern crate std;
 use crate::{Palloc, PallocError};
 use core::ptr::slice_from_raw_parts_mut;
 
-use super::empty_heap;
-
-fn empty_allocator() -> Palloc {
+fn empty_allocator(heap: &mut [u8]) -> Palloc {
     let mut palloc = Palloc::empty();
-    unsafe { palloc.init_from_slice(empty_heap()) };
-
+    unsafe { palloc.init_from_slice(heap) };
     palloc
 }
 
@@ -26,7 +23,8 @@ fn memtest_allocation(start: *mut u8, size: usize) -> bool {
 
 #[test]
 fn test_single_alloc() -> Result<(), PallocError> {
-    let mut palloc = empty_allocator();
+    let mut heap = [0u8; 50];
+    let mut palloc = empty_allocator(&mut heap);
 
     let ptr = unsafe { palloc.alloc(30)? };
     assert!(memtest_allocation(ptr, 30), "should pass memtest");
@@ -36,7 +34,8 @@ fn test_single_alloc() -> Result<(), PallocError> {
 
 #[test]
 fn test_realloc() -> Result<(), PallocError> {
-    let mut palloc = empty_allocator();
+    let mut heap = [0u8; 100];
+    let mut palloc = empty_allocator(&mut heap);
 
     let allocation = unsafe { palloc.alloc(50)? };
     unsafe { palloc.free(allocation)? };
@@ -49,7 +48,8 @@ fn test_realloc() -> Result<(), PallocError> {
 
 #[test]
 fn test_merge() -> Result<(), PallocError> {
-    let mut palloc = empty_allocator();
+    let mut heap = [0; 100];
+    let mut palloc = empty_allocator(&mut heap);
 
     let first = unsafe { palloc.alloc(20)? };
     let second = unsafe { palloc.alloc(20)? };
@@ -67,7 +67,8 @@ fn test_merge() -> Result<(), PallocError> {
 
 #[test]
 fn test_segment() -> Result<(), PallocError> {
-    let mut palloc = empty_allocator();
+    let mut heap = [0; 100];
+    let mut palloc = empty_allocator(&mut heap);
 
     let alloc = unsafe { palloc.alloc(50)? };
     unsafe { palloc.free(alloc)? };
@@ -80,10 +81,11 @@ fn test_segment() -> Result<(), PallocError> {
 
 #[test]
 fn test_oom() {
-    let mut palloc = empty_allocator();
+    let mut heap = [0; 30];
+    let mut palloc = empty_allocator(&mut heap);
 
     assert_eq!(
-        unsafe { palloc.alloc(135) }.unwrap_err(),
+        unsafe { palloc.alloc(15) }.unwrap_err(),
         PallocError::OutOfMemory
     );
 }

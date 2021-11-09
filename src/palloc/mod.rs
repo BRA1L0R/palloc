@@ -80,7 +80,7 @@ impl Palloc {
         let (bottom, size) = (heap.as_mut_ptr(), heap.len());
         let bottom = NonNull::new(bottom).expect("non nullpointed slice");
 
-        self.init(bottom.cast(), size);
+        self.init(bottom, size);
     }
 
     /// Creates a new allocation of `size` bytes. When Ok, returns a pointer
