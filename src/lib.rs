@@ -13,13 +13,11 @@
 
 /// allocator module
 pub mod palloc;
-pub use crate::palloc::*;
+pub use crate::palloc::{Palloc, PallocError};
 
-/// spinlock global allocator
-#[cfg(feature = "spin")]
-pub mod spinlock;
-#[cfg(feature = "spin")]
-pub use crate::spinlock::*;
+/// GlobalAlloc implementations
+pub mod global;
+pub use crate::global::*;
 
 #[cfg(test)]
 mod test;

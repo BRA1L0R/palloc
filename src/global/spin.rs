@@ -3,7 +3,7 @@ use core::{
     alloc::GlobalAlloc,
     ptr::{null_mut, NonNull},
 };
-use spin::Mutex;
+use spin::{mutex::Mutex, relax::Loop};
 
 /// Spinlock based GlobalAlloc implementation for Palloc.
 ///
@@ -16,31 +16,29 @@ use spin::Mutex;
 /// technique. It is the only GlobalALloc implemented because it's
 /// the most generic too.
 pub struct SpinPalloc {
-    allocator: Mutex<Palloc>,
+    allocator: Mutex<Palloc, Loop>,
 }
 
 impl SpinPalloc {
     /// Creates an empty const SpinPalloc
+    ///
+    /// See [`empty`](../../palloc/struct.Palloc.html#method.empty)
     pub const fn empty() -> SpinPalloc {
         let allocator = Mutex::new(Palloc::empty());
         SpinPalloc { allocator }
     }
 
-    /// Initializes the underlying Palloc with a non-null bottom
-    /// and a given size.
-    ///
+    /// See [`init`](../../palloc/struct.Palloc.html#method.init)
     /// ### Safety
-    /// Bottom must never be zero or else it will lead to **undefined behaviour**.
-    /// The whole memory space (bottom <-> bottom+size) must be free for use.
     pub unsafe fn init(&self, bottom: NonNull<u8>, size: usize) {
-        self.allocator.lock().init(bottom, size);
+        self.allocator
+            .try_lock()
+            .expect("initialization should never be blocked by a mutex")
+            .init(bottom, size);
     }
 
-    /// Initializes the underlying Palloc from a heap slice.
-    ///
+    /// See [`init_from_slice`](../../palloc/struct.Palloc.html#method.init_from_slice)
     /// ### Safety
-    /// Panics if heap start is null. See [`init`](#method.init)
-    /// for general safety informations.
     pub unsafe fn init_from_slice(&self, heap: &mut [u8]) {
         self.allocator.lock().init_from_slice(heap)
     }
