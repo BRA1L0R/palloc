@@ -31,6 +31,9 @@ unsafe impl GlobalAlloc for SpinPalloc {
     }
 
     unsafe fn dealloc(&self, ptr: *mut u8, _layout: core::alloc::Layout) {
-        self.allocator.lock().free(ptr).unwrap();
+        self.allocator
+            .lock()
+            .free(NonNull::new(ptr).unwrap())
+            .unwrap();
     }
 }

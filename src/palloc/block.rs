@@ -16,10 +16,6 @@ impl MemoryBlock {
         ptr.as_mut()
     }
 
-    pub unsafe fn from_ptr_unchecked(ptr: *mut MemoryBlock) -> BlockRef {
-        &mut *ptr
-    }
-
     /// # Safety
     pub unsafe fn default_from_ptr(ptr: NonNull<MemoryBlock>) -> BlockRef {
         let block = Self::from_ptr(ptr);
@@ -117,13 +113,9 @@ impl MemoryBlock {
     }
 
     /// # Safety
-    pub unsafe fn from_heap_ptr(heap: *mut u8) -> Option<BlockRef> {
-        ((heap as usize - size_of::<Self>()) as *mut MemoryBlock).as_mut()
-    }
-
-    /// # Safety
-    pub unsafe fn from_heap_ptr_unchecked(heap: *mut u8) -> BlockRef {
-        &mut *((heap as usize - size_of::<Self>()) as *mut MemoryBlock)
+    pub unsafe fn from_heap_ptr(heap: NonNull<u8>) -> Option<BlockRef> {
+        NonNull::new((heap.as_ptr() as usize - size_of::<Self>()) as *mut _)
+            .map(|mut ptr| ptr.as_mut())
     }
 
     pub fn iter_mut(&'static mut self) -> BlockIterator {

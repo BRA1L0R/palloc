@@ -44,8 +44,8 @@ impl Palloc {
         }
     }
 
-    fn get_origin(&self) -> BlockRef {
-        unsafe { MemoryBlock::from_ptr_unchecked(self.bottom) }
+    unsafe fn get_origin(&self) -> BlockRef {
+        NonNull::new_unchecked(self.bottom).as_mut()
     }
 
     /// Initializes the allocator with a pointer to a free heap region
@@ -133,8 +133,8 @@ impl Palloc {
     /// ### Safety
     /// `alloc` must point to the bottom of a valid allocation. Not being aligned to
     /// one will lead to **undefined behaviour**, potentially destructive.
-    pub unsafe fn free(&self, alloc: *mut u8) -> Result<(), PallocError> {
-        let block = MemoryBlock::from_heap_ptr_unchecked(alloc);
+    pub unsafe fn free(&self, alloc: NonNull<u8>) -> Result<(), PallocError> {
+        let block = MemoryBlock::from_heap_ptr(alloc).unwrap(); // should never result into a null pointer
         if block.is_allocated() {
             block.dealloc()
         } else {
