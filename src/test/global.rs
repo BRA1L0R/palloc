@@ -30,7 +30,7 @@ test_global_palloc!(
 test_global_palloc!(unsafecell, crate::UnsafeCellPalloc, test_vector_allocation);
 
 fn test_vector_allocation<T: GlobalPalloc>() {
-    let mut heap = [0; 36];
+    let mut heap = std::vec![0u8; 200];
     let allocator = unsafe { T::new_from_slice(&mut heap) };
 
     let mut allocated = Vec::<u8, &T>::with_capacity_in(20, &allocator);
