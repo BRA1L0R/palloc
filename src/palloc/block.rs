@@ -48,9 +48,9 @@ impl MemoryBlock {
                 break;
             }
 
-            let next = self.next.as_mut().unwrap().next.take();
-            match self.next.as_ref().unwrap().allocation {
-                0 => self.next = next,
+            let next_block = self.next.as_mut().unwrap();
+            match next_block.allocation {
+                0 => self.next = next_block.next.take(),
                 _ => return Err(PallocError::NoBlockSpace),
             }
         }

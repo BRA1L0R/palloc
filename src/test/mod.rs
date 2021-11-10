@@ -1,2 +1,4 @@
+#![doc(hidden)]
+
+mod global;
 mod palloc;
-mod spinlock;

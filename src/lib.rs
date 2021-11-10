@@ -1,6 +1,11 @@
 #![no_std]
 #![warn(missing_docs)]
 #![deny(rustdoc::broken_intra_doc_links)]
+#![cfg_attr(
+    feature = "allocator_api",
+    feature(allocator_api, nonnull_slice_from_raw_parts)
+)]
+#![feature(trait_alias)]
 
 //! Portable allocator designed for baremetal systems
 //!

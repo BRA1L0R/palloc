@@ -1,7 +1,7 @@
 extern crate std;
 
 use crate::{Palloc, PallocError};
-use core::ptr::slice_from_raw_parts_mut;
+use core::ptr::{slice_from_raw_parts_mut, NonNull};
 
 fn empty_allocator(heap: &mut [u8]) -> Palloc {
     let mut palloc = Palloc::empty();
@@ -9,8 +9,8 @@ fn empty_allocator(heap: &mut [u8]) -> Palloc {
     palloc
 }
 
-fn memtest_allocation(start: *mut u8, size: usize) -> bool {
-    let memory = unsafe { &mut *slice_from_raw_parts_mut(start, size) };
+fn memtest_allocation(start: NonNull<u8>, size: usize) -> bool {
+    let memory = unsafe { &mut *slice_from_raw_parts_mut(start.as_ptr(), size) };
     !memory
         .iter_mut()
         .enumerate()
@@ -75,7 +75,7 @@ fn test_segment() -> Result<(), PallocError> {
 
     let new_alloc = unsafe { palloc.alloc(5)? };
 
-    assert!((new_alloc as usize) < alloc as usize + 50);
+    assert!((new_alloc.as_ptr() as usize) < alloc.as_ptr() as usize + 50);
     Ok(())
 }
 

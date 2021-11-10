@@ -99,7 +99,7 @@ impl Palloc {
     /// ### Safety
     /// Null pointer is never returned, in case of OOM a PallocError is returned
     /// instead. As stated before, memory is never to be assumed initialized.
-    pub unsafe fn alloc(&mut self, size: usize) -> Result<*mut u8, PallocError> {
+    pub unsafe fn alloc(&mut self, size: usize) -> Result<NonNull<u8>, PallocError> {
         let origin = self.get_origin(); // base memory block starting from bottom
         let list = origin.iter_mut();
 
@@ -125,7 +125,7 @@ impl Palloc {
                 block.segment()?;
             }
 
-            return Ok(allocation);
+            return Ok(NonNull::new_unchecked(allocation));
         }
 
         panic!("a valid candidate must be found before the loop ends")
@@ -140,12 +140,8 @@ impl Palloc {
     /// ### Safety
     /// `alloc` must point to the bottom of a valid allocation. Not being aligned to
     /// one will lead to **undefined behaviour**, potentially destructive.
-    pub unsafe fn free(&self, alloc: *mut u8) -> Result<(), PallocError> {
-        let block = NonNull::new(alloc)
-            .map(|ptr| MemoryBlock::from_heap_ptr(ptr))
-            .flatten()
-            .ok_or(PallocError::NullPtr)?;
-
+    pub unsafe fn free(&self, alloc: NonNull<u8>) -> Result<(), PallocError> {
+        let block = MemoryBlock::from_heap_ptr(alloc).ok_or(PallocError::NullPtr)?;
         if block.is_allocated() {
             block.dealloc()
         } else {
