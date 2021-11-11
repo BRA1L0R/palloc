@@ -23,7 +23,7 @@ rustup override set nightly
 ### Crate features
 
 - `spin` (default): provides a GlobalAllocator implementation using a spin-lock provided by the [spin](https://crates.io/crate/spin) crate.
-- `allocator_api` (default): enables implements the Allocator trait on all global allocators.
+- `allocator_api` (default): enables implementation of the Allocator trait on all global allocators.
 
 ### Example
 
