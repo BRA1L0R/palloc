@@ -1,5 +1,16 @@
 [package]
 name = "palloc"
+authors = ["BRA1L0R"]
+repository = "https://github.com/BRA1L0R/palloc"
+documentation = "https://docs.rs/palloc"
+
+description = "portable linked-list allocator for baremetal systems"
+keywords = ["allocator", "alloc", "no-std", "baremetal", "embedded"]
+categories = ["memory-management", "no-std", "embedded"]
+
+readme = "README.md"
+license-file = "LICENSE.md"
+
 version = "0.1.0"
 edition = "2021"
 
