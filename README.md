@@ -5,12 +5,19 @@
 
 Portable linked-list allocator for embedded / baremetal systems.
 
-### Importing the crate
+### Using the crate
 
 Include this in the `[dependencies]` section of `Cargo.toml`
 
 ```
 spin = "0.1.0"
+```
+
+This crate uses **unstable features** of Rust, so it requires the `nightly` update channel. Here's how you can
+update your Rust toolchain just for the project where you intend to use this:
+
+```
+rustup override set nightly
 ```
 
 ### Crate features
