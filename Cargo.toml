@@ -5,7 +5,7 @@ repository = "https://github.com/BRA1L0R/palloc"
 documentation = "https://docs.rs/palloc"
 
 description = "portable linked-list allocator for baremetal systems"
-keywords = ["allocator", "alloc", "no-std", "baremetal", "embedded", "nightly"]
+keywords = ["allocator", "no-std", "baremetal", "embedded", "nightly"]
 categories = ["memory-management", "no-std", "embedded"]
 
 readme = "README.md"
