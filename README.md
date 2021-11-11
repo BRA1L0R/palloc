@@ -1,7 +1,7 @@
 # Palloc
 
-![docs.rs](https://img.shields.io/docsrs/palloc)
-![Crates.io](https://img.shields.io/crates/v/palloc)
+<a href="https://docs.rs/palloc"><img alt="docs.rs" src="https://img.shields.io/docsrs/palloc"></a>
+<a href="https://crates.io/crates/palloc"><img alt="crates.io" src="https://img.shields.io/crates/v/palloc"></a>
 
 Portable linked-list allocator for embedded / baremetal systems.
 
@@ -22,7 +22,7 @@ rustup override set nightly
 
 ### Crate features
 
-- `spin` (default): provides a GlobalAllocator implementation using a spin-lock provided by the [spin](crates.io/spin) crate.
+- `spin` (default): provides a GlobalAllocator implementation using a spin-lock provided by the [spin](https://crates.io/crate/spin) crate.
 - `allocator_api` (default): enables implements the Allocator trait on all global allocators.
 
 ### Example
@@ -56,5 +56,5 @@ fn main() {
 ### Documentation
 
 Everything you need to know in order to use this crate is already written in the rustdocs.
-Click on the badge under this readme's title or [click here](docs.rs/palloc) to read the full
+Click on the badge under this readme's title or [click here](https://docs.rs/palloc) to read the full
 documentation.
