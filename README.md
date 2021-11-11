@@ -10,11 +10,11 @@ Portable linked-list allocator for embedded / baremetal systems.
 Include this in the `[dependencies]` section of `Cargo.toml`
 
 ```
-spin = "0.1.0"
+palloc = "0.1.0"
 ```
 
-This crate uses **unstable features** of Rust, so it requires the `nightly` update channel. Here's how you can
-update your Rust toolchain just for the project where you intend to use this:
+This crate uses **unstable features** of Rust, so it requires the `nightly` update channel. Update the toolchain
+for your project folder with:
 
 ```
 rustup override set nightly
@@ -22,8 +22,8 @@ rustup override set nightly
 
 ### Crate features
 
-- `spin` (default): provides a GlobalAllocator implementation using a spin-lock provided by the [spin](https://crates.io/crate/spin) crate.
-- `allocator_api` (default): enables implementation of the Allocator trait on all global allocators.
+- `spin` (default): provides a GlobalAllocator implementation using a [spin lock](https://crates.io/crates/spin).
+- `allocator_api` (default): enables the Allocator trait and implements it on all global allocators.
 
 ### Example
 
@@ -33,9 +33,9 @@ rustup override set nightly
 use core::ptr::NonNull;
 use palloc::{GlobalPalloc, SpinPalloc};
 
-#[global_allocator]
 // the allocator is initialized using a const empty function, but it is
 // not ready yet, we must initialize it first in main.
+#[global_allocator]
 static mut ALLOCATOR: SpinPalloc = SpinPalloc::empty();
 
 fn main() {
@@ -50,11 +50,14 @@ fn main() {
     // accessing statics is an unsafe operation
     // so it must be sorrounded by an unsafe block
     unsafe { ALLOCATOR.init(NonNull::new(heap_start).unwrap(), heap_size) };
+
+    // we can now use the heap!
+    // ...
 }
 ```
 
 ### Documentation
 
-Everything you need to know in order to use this crate is already written in the rustdocs.
-Click on the badge under this readme's title or [click here](https://docs.rs/palloc) to read the full
+Everything you need to know is already written in the rustdocs.
+Click on the badge under the readme's title or [click here](https://docs.rs/palloc) to read the full
 documentation.
