@@ -23,7 +23,7 @@ pub trait GlobalPallocConstraint = GlobalAlloc;
 ///
 /// All safety concerns that apply to [`Palloc`](crate::Palloc)
 /// apply to here too.
-pub trait GlobalPalloc: GlobalPallocConstraint + Sized {
+pub trait GlobalPalloc: GlobalPallocConstraint + Sized + Send {
     /// Creates an empty uninitialized instance of the allocator
     fn new() -> Self;
 

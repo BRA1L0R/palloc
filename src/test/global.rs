@@ -37,7 +37,7 @@ fn test_vector_allocation<T: GlobalPalloc>() {
     (0..20).for_each(|val| allocated.push(val));
 }
 
-fn test_concurrence<T: 'static + GlobalPalloc + Send + Sync>() {
+fn test_concurrence<T: 'static + GlobalPalloc + Sync>() {
     let mut heap = std::vec![0u8; 500];
     let allocator = unsafe { T::new_from_slice(&mut heap) };
 
