@@ -1,9 +1,5 @@
-/// spinlock based global allocator
-pub mod spin;
 use core::alloc::GlobalAlloc;
 use core::ptr::NonNull;
-
-pub use self::spin::SpinPalloc;
 
 #[cfg(feature = "allocator_api")]
 use core::alloc::Allocator;
@@ -74,3 +70,9 @@ pub trait GlobalPalloc: GlobalPallocConstraint + Sized + Send {
 /// generic mmu-less single core systems
 pub mod unsafecell;
 pub use self::unsafecell::UnsafeCellPalloc;
+
+/// spinlock based global allocator
+#[cfg(feature = "spin")]
+pub mod spin;
+#[cfg(feature = "spin")]
+pub use self::spin::SpinPalloc;

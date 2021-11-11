@@ -15,6 +15,9 @@
 //!
 //! This allocator is not speed-oriented, while still being relatively efficent.
 //! Allocations have a 2*usize overhead
+//!
+//! A practical example of how to use this crate as a global allocator is available
+//! in the [README.md](https://github.com/BRA1L0R/palloc) file
 
 /// allocator module
 pub mod palloc;
